@@ -1,0 +1,71 @@
+ipconfig
+ifconfig
+session
+ipconfig
+ifconfig
+start
+ifconfig
+use
+session
+ifconfig
+start
+help
+tunnel_list
+listener_add --addr 0.0.0.0:1234 --to 0.0.0.0:8888 --tcp
+listener_add --addr 0.0.0.0:1234 --to 0.0.0.0:4444 --tcp
+listener_add --addr 0.0.0.0:4444 --to 0.0.0.0:4444 --tcp
+ifconfig
+listener_add --addr 0.0.0.0:8888 --to 0.0.0.0:8888 --tcp
+listener_add --addr 0.0.0.0:5555 --to 0.0.0.0:5555 --tcp
+listener_add --addr 0.0.0.0:8002 --to 0.0.0.0:8002 --tcp
+ipconfig
+start
+session
+ipconfig
+ifconfig
+start
+ifconfig
+use
+session
+ifconfig
+start
+use
+session
+start
+tunnels
+sessions
+session
+exit
+start
+session
+start
+exit
+session
+start
+session
+start
+help
+tunnel_list
+tunnel_stop
+session
+exit
+start
+session
+start
+exit
+start
+session
+start
+exit
+start
+session
+start
+listner_add --addr 0.0.0.0.6666 --to 0.0.0.0:6666
+listener_add --addr 0.0.0.0.6666 --to 0.0.0.0:6666
+listener_add --addr 0.0.0.0.6666 --to 192.168.49.104:6666
+listener_add --addr 0.0.0.0:6666 --to 0.0.0.0:6666
+listener_add --addr 0.0.0.0:6667 --to 192.168.49.104:6667
+exit
+start
+session
+start
